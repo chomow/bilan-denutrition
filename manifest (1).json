@@ -1,0 +1,24 @@
+{
+  "short_name": "Dénutrition HAS",
+  "name": "Évaluation Dénutrition - Critères HAS",
+  "description": "Application professionnelle d'évaluation de la dénutrition selon les critères HAS 2019/2021",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "./index.html",
+  "display": "standalone",
+  "theme_color": "#4f46e5",
+  "background_color": "#ffffff",
+  "orientation": "portrait"
+}

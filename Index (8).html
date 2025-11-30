@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#4f46e5">
+    <meta name="description" content="Application d'évaluation de la dénutrition selon les critères HAS 2019/2021">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Dénutrition HAS">
+    <meta name="mobile-web-app-capable" content="yes">
+    
+    <title>Évaluation Dénutrition - Critères HAS</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html, body {
+            height: 100%;
+            overflow-x: hidden;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            background: linear-gradient(135deg, #dbeafe 0%, #c7d2fe 100%);
+            min-height: 100vh;
+            padding: 0;
+            touch-action: pan-y;
+        }
+
+        .container {
+            max-width: 100%;
+            min-height: 100vh;
+            background: white;
+            padding: 20px 16px;
+            padding-bottom: 100px;
+        }
+
+        h1 {
+            color: #1f2937;
+            margin-bottom: 8px;
+            font-size: 22px;
+            font-weight: 700;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            background: #f3f4f6;
+            color: #6b7280;
+            font-size: 11px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            margin-bottom: 16px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #e5e7eb;
+            border-radius: 10px;
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #4f46e5;
+            transition: width 0.3s ease;
+        }
+
+        .question-container {
+            margin-bottom: 24px;
+        }
+
+        .question-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        .question-subtitle {
+            font-size: 13px;
+            color: #6b7280;
+            margin-bottom: 16px;
+        }
+
+        .option-button {
+            width: 100%;
+            padding: 18px 16px;
+            margin-bottom: 12px;
+            border: 2px solid #e5e7eb;
+            background: white;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 16px;
+            text-align: left;
+            transition: all 0.2s;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        .option-button:active {
+            transform: scale(0.98);
+        }
+
+        .option-button.selected {
+            border-color: #4f46e5;
+            background: #eef2ff;
+            color: #4338ca;
+            font-weight: 500;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 18px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 18px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: white;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #4f46e5;
+            background: #fefefe;
+        }
+
+        /* Empêcher le zoom sur iOS */
+        input[type="number"] {
+            font-size: 16px;
+        }
+
+        .button-group {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            gap: 8px;
+            padding: 12px 16px;
+            background: white;
+            border-top: 1px solid #e5e7eb;
+            box-shadow: 0 -4px 12px rgba(0,0,0,0.05);
+            z-index: 100;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 16px 20px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        .btn:active:not(:disabled) {
+            transform: scale(0.97);
+        }
+
+        .btn-secondary {
+            background: #e5e7eb;
+            color: #374151;
+        }
+
+        .btn-primary {
+            background: #4f46e5;
+            color: white;
+        }
+
+        .btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .result-card {
+            border-left: 4px solid;
+            padding: 20px;
+            border-radius: 0 12px 12px 0;
+            margin-bottom: 20px;
+        }
+
+        .result-card.green {
+            background: #f0fdf4;
+            border-color: #22c55e;
+        }
+
+        .result-card.orange {
+            background: #fff7ed;
+            border-color: #f97316;
+        }
+
+        .result-card.red {
+            background: #fef2f2;
+            border-color: #ef4444;
+        }
+
+        .result-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .result-card.green .result-title {
+            color: #166534;
+        }
+
+        .result-card.orange .result-title {
+            color: #9a3412;
+        }
+
+        .result-card.red .result-title {
+            color: #991b1b;
+        }
+
+        .criteria-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .criteria-box {
+            background: white;
+            padding: 14px;
+            border-radius: 10px;
+        }
+
+        .criteria-label {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 8px;
+            border-radius: 6px;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+
+        .result-card.orange .criteria-label {
+            background: #fed7aa;
+            color: #9a3412;
+        }
+
+        .result-card.red .criteria-label {
+            background: #fecaca;
+            color: #991b1b;
+        }
+
+        ul {
+            list-style: disc;
+            padding-left: 18px;
+        }
+
+        li {
+            margin-bottom: 6px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .info-box {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            padding: 14px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 13px;
+        }
+
+        .details-box {
+            background: white;
+            padding: 14px;
+            border-radius: 10px;
+            margin: 14px 0;
+            font-size: 14px;
+        }
+
+        .details-box p {
+            margin-bottom: 4px;
+        }
+
+        /* Amélioration du scroll sur mobile */
+        .container {
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* Loader */
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #e5e7eb;
+            border-top: 4px solid #4f46e5;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="app">
+            <div class="loading">
+                <div class="spinner"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(reg => console.log('Service Worker enregistré'))
+                    .catch(err => console.log('Erreur Service Worker:', err));
+            });
+        }
+
+        const questions = [
+            {
+                id: 'age',
+                question: "Âge du patient (en années)",
+                type: 'number',
+                placeholder: 'Ex: 65'
+            },
+            {
+                id: 'height',
+                question: "Taille du patient (en cm)",
+                type: 'number',
+                placeholder: 'Ex: 170'
+            },
+            {
+                id: 'current_weight',
+                question: "Poids actuel (en kg)",
+                type: 'number',
+                placeholder: 'Ex: 65.5'
+            },
+            {
+                id: 'weight_1month',
+                question: "Poids il y a 1 mois (en kg)",
+                type: 'number',
+                placeholder: 'Laisser vide si inconnu',
+                optional: true
+            },
+            {
+                id: 'weight_6months',
+                question: "Poids il y a 6 mois (en kg)",
+                type: 'number',
+                placeholder: 'Laisser vide si inconnu',
+                optional: true
+            },
+            {
+                id: 'weight_before_illness',
+                question: "Poids habituel avant la maladie (en kg)",
+                type: 'number',
+                placeholder: 'Laisser vide si inconnu',
+                optional: true
+            },
+            {
+                id: 'food_intake',
+                question: "Réduction de la prise alimentaire",
+                type: 'select',
+                options: [
+                    'Pas de réduction',
+                    'Réduction ≥ 50% pendant > 1 semaine',
+                    'Réduction pendant > 2 semaines'
+                ]
+            },
+            {
+                id: 'malabsorption',
+                question: "Malabsorption ou maldigestion digestive",
+                type: 'select',
+                options: ['Non', 'Oui']
+            },
+            {
+                id: 'pathology',
+                question: "Situation d'agression",
+                type: 'select',
+                options: [
+                    'Aucune',
+                    'Pathologie aiguë',
+                    'Pathologie chronique évolutive',
+                    'Pathologie maligne évolutive'
+                ]
+            },
+            {
+                id: 'sarcopenia',
+                question: "Sarcopénie confirmée par mesures objectives",
+                type: 'select',
+                options: ['Non évaluée', 'Non', 'Oui']
+            },
+            {
+                id: 'albumin',
+                question: "Albuminémie (si disponible)",
+                type: 'select',
+                options: ['≥ 35 g/L', '30-35 g/L', '< 30 g/L', 'Non disponible']
+            }
+        ];
+
+        let currentStep = 0;
+        let answers = {};
+        let result = null;
+
+        function render() {
+            const app = document.getElementById('app');
+            
+            if (result) {
+                app.innerHTML = renderResult();
+                attachResultListeners();
+            } else {
+                app.innerHTML = renderQuestion();
+                attachQuestionListeners();
+            }
+        }
+
+        function renderQuestion() {
+            const question = questions[currentStep];
+            const progress = ((currentStep + 1) / questions.length) * 100;
+            
+            let html = `
+                <div class="header">
+                    <h1>Évaluation Nutritionnelle</h1>
+                    <div class="badge">
+                        <span>Question ${currentStep + 1} / ${questions.length}</span>
+                    </div>
+                </div>
+                
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: ${progress}%"></div>
+                </div>
+                
+                <div class="question-container">
+                    <div class="question-title">${question.question}</div>
+                    ${question.optional ? '<div class="question-subtitle">(Optionnel)</div>' : ''}
+                    
+                    <div class="options">
+            `;
+            
+            if (question.type === 'select') {
+                question.options.forEach(option => {
+                    const selected = answers[question.id] === option ? 'selected' : '';
+                    html += `<button class="option-button ${selected}" data-value="${option}">${option}</button>`;
+                });
+            } else if (question.type === 'number') {
+                const value = answers[question.id] || '';
+                html += `<input type="number" inputmode="decimal" step="0.1" placeholder="${question.placeholder}" value="${value}" id="numberInput">`;
+            }
+            
+            html += `
+                    </div>
+                </div>
+            `;
+            
+            return html;
+        }
+
+        function renderResult() {
+            const severityText = {
+                'none': 'Pas de dénutrition',
+                'moderate': 'Dénutrition Modérée',
+                'severe': 'Dénutrition Sévère'
+            };
+            
+            const cardClass = result.severity === 'none' ? 'green' : (result.severity === 'moderate' ? 'orange' : 'red');
+            
+            let html = `
+                <div class="header">
+                    <h1>Résultat de l'Évaluation</h1>
+                    <div class="badge">Critères HAS 2019/2021</div>
+                </div>
+                
+                <div class="result-card ${cardClass}">
+                    <div class="result-title">${severityText[result.severity]}</div>
+                    <p style="margin-bottom: 14px; font-size: 14px; line-height: 1.5;">
+                        ${getResultDescription()}
+                    </p>
+                    
+                    <div class="details-box">
+                        <p><strong>Âge :</strong> ${result.details.age} ans</p>
+                        <p><strong>IMC :</strong> ${result.details.imc} kg/m²</p>
+                        ${result.details.loss1Month > 0 ? `<p><strong>Perte 1 mois :</strong> ${result.details.loss1Month}%</p>` : ''}
+                        ${result.details.loss6Months > 0 ? `<p><strong>Perte 6 mois :</strong> ${result.details.loss6Months}%</p>` : ''}
+                        ${result.details.lossBeforeIllness > 0 ? `<p><strong>Perte depuis maladie :</strong> ${result.details.lossBeforeIllness}%</p>` : ''}
+                    </div>
+                    
+                    ${result.severity !== 'none' ? `
+                        <div class="criteria-grid">
+                            <div class="criteria-box">
+                                <div class="criteria-label">PHÉNOTYPIQUES</div>
+                                <ul>
+                                    ${result.phenotypicCriteria.map(c => `<li>${c}</li>`).join('')}
+                                </ul>
+                            </div>
+                            <div class="criteria-box">
+                                <div class="criteria-label">ÉTIOLOGIQUES</div>
+                                <ul>
+                                    ${result.etiologicCriteria.map(c => `<li>${c}</li>`).join('')}
+                                </ul>
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+                
+                <div class="info-box">
+                    <p style="margin-bottom: 6px; font-weight: 600;">Diagnostic HAS</p>
+                    <p style="margin-bottom: 8px;">Dénutrition = AU MOINS 1 critère phénotypique ET 1 critère étiologique</p>
+                    <p style="font-size: 11px;"><strong>Références :</strong> HAS 2019/2021</p>
+                </div>
+            `;
+            
+            return html;
+        }
+
+        function getResultDescription() {
+            if (result.severity === 'none') {
+                if (!result.hasPhenotypic && !result.hasEtiologic) {
+                    return "Aucun critère phénotypique ou étiologique n'est rempli.";
+                } else if (result.hasPhenotypic && !result.hasEtiologic) {
+                    return "Critère(s) phénotypique(s) présent(s) mais absence de critère étiologique.";
+                } else {
+                    return "Critère(s) étiologique(s) présent(s) mais absence de critère phénotypique.";
+                }
+            } else if (result.severity === 'moderate') {
+                return "Le patient présente AU MOINS 1 critère phénotypique ET 1 critère étiologique.";
+            } else {
+                return "Dénutrition sévère nécessitant une prise en charge urgente.";
+            }
+        }
+
+        function canProceed() {
+            const question = questions[currentStep];
+            return question.optional || (answers[question.id] !== undefined && answers[question.id] !== '');
+        }
+
+        function attachQuestionListeners() {
+            document.querySelectorAll('.option-button').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const question = questions[currentStep];
+                    answers[question.id] = btn.dataset.value;
+                    
+                    // Passer à la question suivante automatiquement
+                    setTimeout(() => {
+                        if (currentStep < questions.length - 1) {
+                            currentStep++;
+                            render();
+                        } else {
+                            evaluateDenutrition();
+                            render();
+                        }
+                    }, 200);
+                });
+            });
+
+            const numberInput = document.getElementById('numberInput');
+            if (numberInput) {
+                let typingTimer;
+                
+                numberInput.addEventListener('input', (e) => {
+                    const question = questions[currentStep];
+                    answers[question.id] = e.target.value;
+                    
+                    // Mettre à jour les boutons
+                    updateButtons();
+                });
+
+                // Focus automatique
+                setTimeout(() => {
+                    numberInput.focus();
+                }, 150);
+            }
+
+            // Créer les boutons de navigation
+            createNavigationButtons();
+        }
+
+        function createNavigationButtons() {
+            let navHtml = `
+                <div class="button-group">
+                    <button class="btn btn-secondary" id="prevBtn" ${currentStep === 0 ? 'disabled' : ''}>Précédent</button>
+                    <button class="btn btn-primary" id="nextBtn" ${!canProceed() ? 'disabled' : ''}>
+                        ${currentStep === questions.length - 1 ? 'Résultat' : 'Suivant'}
+                    </button>
+                </div>
+            `;
+
+            // Supprimer l'ancien si existe
+            const oldNav = document.querySelector('.button-group');
+            if (oldNav) oldNav.remove();
+
+            // Ajouter le nouveau
+            document.body.insertAdjacentHTML('beforeend', navHtml);
+
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+
+            if (prevBtn) {
+                prevBtn.addEventListener('click', () => {
+                    if (currentStep > 0) {
+                        currentStep--;
+                        render();
+                    }
+                });
+            }
+
+            if (nextBtn) {
+                nextBtn.addEventListener('click', () => {
+                    if (canProceed()) {
+                        if (currentStep < questions.length - 1) {
+                            currentStep++;
+                            render();
+                        } else {
+                            evaluateDenutrition();
+                            render();
+                        }
+                    }
+                });
+            }
+        }
+
+        function updateButtons() {
+            const nextBtn = document.getElementById('nextBtn');
+            if (nextBtn) {
+                nextBtn.disabled = !canProceed();
+            }
+        }
+
+        function attachResultListeners() {
+            let navHtml = `
+                <div class="button-group">
+                    <button class="btn btn-primary" id="copyBtn">📧 Copier</button>
+                    <button class="btn btn-primary" id="resetBtn">Nouvelle</button>
+                </div>
+            `;
+
+            const oldNav = document.querySelector('.button-group');
+            if (oldNav) oldNav.remove();
+
+            document.body.insertAdjacentHTML('beforeend', navHtml);
+
+            document.getElementById('resetBtn').addEventListener('click', () => {
+                currentStep = 0;
+                answers = {};
+                result = null;
+                render();
+            });
+
+            document.getElementById('copyBtn').addEventListener('click', copyToClipboard);
+        }
+
+        function evaluateDenutrition() {
+            const age = parseInt(answers.age);
+            const height = parseFloat(answers.height) / 100;
+            const currentWeight = parseFloat(answers.current_weight);
+            const imc = currentWeight / (height * height);
+
+            const weight1Month = parseFloat(answers.weight_1month) || 0;
+            const weight6Months = parseFloat(answers.weight_6months) || 0;
+            const weightBeforeIllness = parseFloat(answers.weight_before_illness) || 0;
+
+            let phenotypicCriteria = [];
+            let etiologicCriteria = [];
+            let hasPhenotypic = false;
+            let hasEtiologic = false;
+            let severity = 'none';
+
+            let maxLoss1Month = 0;
+            let maxLoss6Months = 0;
+            let maxLossBeforeIllness = 0;
+
+            if (weight1Month && weight1Month > currentWeight) {
+                maxLoss1Month = ((weight1Month - currentWeight) / weight1Month) * 100;
+            }
+            if (weight6Months && weight6Months > currentWeight) {
+                maxLoss6Months = ((weight6Months - currentWeight) / weight6Months) * 100;
+            }
+            if (weightBeforeIllness && weightBeforeIllness > currentWeight) {
+                maxLossBeforeIllness = ((weightBeforeIllness - currentWeight) / weightBeforeIllness) * 100;
+            }
+
+            if (maxLoss1Month >= 5) {
+                phenotypicCriteria.push(`Perte ≥ 5% en 1 mois (${maxLoss1Month.toFixed(1)}%)`);
+                hasPhenotypic = true;
+            }
+            if (maxLoss6Months >= 10) {
+                phenotypicCriteria.push(`Perte ≥ 10% en 6 mois (${maxLoss6Months.toFixed(1)}%)`);
+                hasPhenotypic = true;
+            }
+            if (maxLossBeforeIllness >= 10) {
+                phenotypicCriteria.push(`Perte ≥ 10% vs poids habituel (${maxLossBeforeIllness.toFixed(1)}%)`);
+                hasPhenotypic = true;
+            }
+
+            if (maxLoss1Month >= 10) {
+                phenotypicCriteria.push(`SÉVÈRE: Perte ≥ 10% en 1 mois`);
+                severity = 'severe';
+            }
+            if (maxLoss6Months >= 15) {
+                phenotypicCriteria.push(`SÉVÈRE: Perte ≥ 15% en 6 mois`);
+                severity = 'severe';
+            }
+            if (maxLossBeforeIllness >= 15) {
+                phenotypicCriteria.push(`SÉVÈRE: Perte ≥ 15% vs poids habituel`);
+                severity = 'severe';
+            }
+
+            const imcThreshold = age >= 70 ? 22 : 18.5;
+            const imcSevereThreshold = age >= 70 ? 20 : 17;
+
+            if (imc < imcThreshold) {
+                phenotypicCriteria.push(`IMC < ${imcThreshold} (${imc.toFixed(1)})`);
+                hasPhenotypic = true;
+            }
+            if (imc < imcSevereThreshold) {
+                phenotypicCriteria.push(`SÉVÈRE: IMC < ${imcSevereThreshold}`);
+                severity = 'severe';
+            }
+
+            if (answers.sarcopenia === 'Oui') {
+                phenotypicCriteria.push('Sarcopénie confirmée');
+                hasPhenotypic = true;
+            }
+
+            if (answers.food_intake === 'Réduction ≥ 50% pendant > 1 semaine') {
+                etiologicCriteria.push('Réduction ≥ 50% > 1 semaine');
+                hasEtiologic = true;
+            } else if (answers.food_intake === 'Réduction pendant > 2 semaines') {
+                etiologicCriteria.push('Réduction > 2 semaines');
+                hasEtiologic = true;
+            }
+
+            if (answers.malabsorption === 'Oui') {
+                etiologicCriteria.push('Malabsorption/maldigestion');
+                hasEtiologic = true;
+            }
+
+            if (answers.pathology !== 'Aucune') {
+                etiologicCriteria.push(`${answers.pathology}`);
+                hasEtiologic = true;
+            }
+
+            if (answers.albumin === '< 30 g/L') {
+                phenotypicCriteria.push('SÉVÈRE: Albuminémie < 30 g/L');
+                severity = 'severe';
+            }
+
+            let diagnosis = 'none';
+            if (hasPhenotypic && hasEtiologic) {
+                diagnosis = severity === 'severe' ? 'severe' : 'moderate';
+            }
+
+            result = {
+                severity: diagnosis,
+                phenotypicCriteria,
+                etiologicCriteria,
+                hasPhenotypic,
+                hasEtiologic,
+                details: {
+                    age,
+                    imc: imc.toFixed(1),
+                    loss1Month: maxLoss1Month.toFixed(1),
+                    loss6Months: maxLoss6Months.toFixed(1),
+                    lossBeforeIllness: maxLossBeforeIllness.toFixed(1)
+                }
+            };
+        }
+
+        function copyToClipboard() {
+            const severityText = {
+                'none': 'Pas de dénutrition',
+                'moderate': 'Dénutrition modérée',
+                'severe': 'Dénutrition sévère'
+            };
+
+            let text = `ÉVALUATION NUTRITIONNELLE - HAS\n\n`;
+            text += `DIAGNOSTIC : ${severityText[result.severity]}\n\n`;
+            text += `Âge : ${result.details.age} ans\n`;
+            text += `IMC : ${result.details.imc} kg/m²\n`;
+            
+            if (result.details.loss1Month > 0) {
+                text += `Perte 1 mois : ${result.details.loss1Month}%\n`;
+            }
+            if (result.details.loss6Months > 0) {
+                text += `Perte 6 mois : ${result.details.loss6Months}%\n`;
+            }
+            if (result.details.lossBeforeIllness > 0) {
+                text += `Perte depuis maladie : ${result.details.lossBeforeIllness}%\n`;
+            }
+            
+            if (result.severity !== 'none') {
+                text += `\nPHÉNOTYPIQUES:\n`;
+                result.phenotypicCriteria.forEach(c => text += `• ${c}\n`);
+                
+                text += `\nÉTIOLOGIQUES:\n`;
+                result.etiologicCriteria.forEach(c => text += `• ${c}\n`);
+            }
+            
+            text += `\nCritères HAS 2019/2021`;
+
+            navigator.clipboard.writeText(text).then(() => {
+                alert('✅ Copié !');
+            }).catch(() => {
+                alert('❌ Erreur');
+            });
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            render();
+        });
+    </script>
+</body>
+</html>

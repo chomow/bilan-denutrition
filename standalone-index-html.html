@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#4f46e5">
+    <meta name="description" content="Application d'évaluation de la dénutrition selon les critères HAS 2019/2021">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Dénutrition HAS">
+    
+    <title>Évaluation Dénutrition - Critères HAS</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            background: linear-gradient(135deg, #dbeafe 0%, #c7d2fe 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            padding: 40px;
+        }
+
+        h1 {
+            color: #1f2937;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            background: #f3f4f6;
+            color: #6b7280;
+            font-size: 12px;
+            padding: 5px 12px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #4f46e5;
+            transition: width 0.3s ease;
+        }
+
+        .question-container {
+            margin-bottom: 30px;
+        }
+
+        .question-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 8px;
+        }
+
+        .question-subtitle {
+            font-size: 14px;
+            color: #6b7280;
+            margin-bottom: 20px;
+        }
+
+        .option-button {
+            width: 100%;
+            padding: 16px;
+            margin-bottom: 12px;
+            border: 2px solid #e5e7eb;
+            background: white;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            text-align: left;
+            transition: all 0.2s;
+        }
+
+        .option-button:hover {
+            border-color: #a5b4fc;
+            background: #f9fafb;
+        }
+
+        .option-button.selected {
+            border-color: #4f46e5;
+            background: #eef2ff;
+            color: #4338ca;
+            font-weight: 500;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 16px;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #4f46e5;
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-secondary {
+            background: #d1d5db;
+            color: #374151;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: #9ca3af;
+        }
+
+        .btn-primary {
+            background: #4f46e5;
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: #4338ca;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .result-card {
+            border-left: 4px solid;
+            padding: 24px;
+            border-radius: 0 10px 10px 0;
+            margin-bottom: 24px;
+        }
+
+        .result-card.green {
+            background: #f0fdf4;
+            border-color: #22c55e;
+        }
+
+        .result-card.orange {
+            background: #fff7ed;
+            border-color: #f97316;
+        }
+
+        .result-card.red {
+            background: #fef2f2;
+            border-color: #ef4444;
+        }
+
+        .result-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .result-card.green .result-title {
+            color: #166534;
+        }
+
+        .result-card.orange .result-title {
+            color: #9a3412;
+        }
+
+        .result-card.red .result-title {
+            color: #991b1b;
+        }
+
+        .criteria-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-top: 20px;
+        }
+
+        .criteria-box {
+            background: white;
+            padding: 16px;
+            border-radius: 10px;
+        }
+
+        .criteria-label {
+            font-size: 12px;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 6px;
+            display: inline-block;
+            margin-bottom: 12px;
+        }
+
+        .result-card.orange .criteria-label {
+            background: #fed7aa;
+            color: #9a3412;
+        }
+
+        .result-card.red .criteria-label {
+            background: #fecaca;
+            color: #991b1b;
+        }
+
+        ul {
+            list-style: disc;
+            padding-left: 20px;
+        }
+
+        li {
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .info-box {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            padding: 16px;
+            border-radius: 10px;
+            margin-bottom: 24px;
+        }
+
+        .details-box {
+            background: white;
+            padding: 16px;
+            border-radius: 10px;
+            margin: 16px 0;
+            font-size: 14px;
+        }
+
+        .details-box p {
+            margin-bottom: 4px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            .criteria-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 24px;
+            }
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="app"></div>
+    </div>
+
+    <script>
+        // Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(reg => console.log('Service Worker enregistré'))
+                    .catch(err => console.log('Erreur Service Worker:', err));
+            });
+        }
+
+        // Application Logic
+        const questions = [
+            {
+                id: 'age',
+                question: "Âge du patient (en années)",
+                type: 'number',
+                placeholder: 'Ex: 65'
+            },
+            {
+                id: 'height',
+                question: "Taille du patient (en cm)",
+                type: 'number',
+                placeholder: 'Ex: 170'
+            },
+            {
+                id: 'current_weight',
+                question: "Poids actuel (en kg)",
+                type: 'number',
+                placeholder: 'Ex: 65.5'
+            },
+            {
+                id: 'weight_1month',
+                question: "Poids il y a 1 mois (en kg)",
+                type: 'number',
+                placeholder: 'Laisser vide si inconnu',
+                optional: true
+            },
+            {
+                id: 'weight_6months',
+                question: "Poids il y a 6 mois (en kg)",
+                type: 'number',
+                placeholder: 'Laisser vide si inconnu',
+                optional: true
+            },
+            {
+                id: 'weight_before_illness',
+                question: "Poids habituel avant la maladie (en kg)",
+                type: 'number',
+                placeholder: 'Laisser vide si inconnu',
+                optional: true
+            },
+            {
+                id: 'food_intake',
+                question: "Réduction de la prise alimentaire",
+                type: 'select',
+                options: [
+                    'Pas de réduction',
+                    'Réduction ≥ 50% pendant > 1 semaine',
+                    'Réduction pendant > 2 semaines (quelle que soit l\'intensité)'
+                ]
+            },
+            {
+                id: 'malabsorption',
+                question: "Malabsorption ou maldigestion digestive",
+                type: 'select',
+                options: ['Non', 'Oui']
+            },
+            {
+                id: 'pathology',
+                question: "Situation d'agression",
+                type: 'select',
+                options: [
+                    'Aucune',
+                    'Pathologie aiguë',
+                    'Pathologie chronique évolutive',
+                    'Pathologie maligne évolutive'
+                ]
+            },
+            {
+                id: 'sarcopenia',
+                question: "Sarcopénie confirmée par mesures objectives (réduction de la force musculaire ET de la masse musculaire - handgrip, impédancemétrie, DEXA...)",
+                type: 'select',
+                options: ['Non évaluée', 'Non', 'Oui']
+            },
+            {
+                id: 'albumin',
+                question: "Albuminémie (si disponible)",
+                type: 'select',
+                options: ['≥ 35 g/L', '30-35 g/L', '< 30 g/L', 'Non disponible']
+            }
+        ];
+
+        let currentStep = 0;
+        let answers = {};
+        let result = null;
+
+        function render() {
+            const app = document.getElementById('app');
+            
+            if (result) {
+                app.innerHTML = renderResult();
+            } else {
+                app.innerHTML = renderQuestion();
+            }
+            
+            attachEventListeners();
+        }
+
+        function renderQuestion() {
+            const question = questions[currentStep];
+            const progress = ((currentStep + 1) / questions.length) * 100;
+            
+            let html = `
+                <div class="header">
+                    <h1>Évaluation Nutritionnelle</h1>
+                    <div class="badge">
+                        <span>Question ${currentStep + 1} / ${questions.length}</span>
+                    </div>
+                </div>
+                
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: ${progress}%"></div>
+                </div>
+                
+                <div class="question-container">
+                    <div class="question-title">${question.question}</div>
+                    ${question.optional ? '<div class="question-subtitle">(Optionnel - cliquer sur Suivant pour passer)</div>' : ''}
+                    
+                    <div class="options">
+            `;
+            
+            if (question.type === 'select') {
+                question.options.forEach(option => {
+                    const selected = answers[question.id] === option ? 'selected' : '';
+                    html += `<button class="option-button ${selected}" data-value="${option}">${option}</button>`;
+                });
+            } else if (question.type === 'number') {
+                const value = answers[question.id] || '';
+                html += `<input type="number" step="0.1" placeholder="${question.placeholder}" value="${value}" id="numberInput">`;
+            }
+            
+            html += `
+                    </div>
+                </div>
+                
+                <div class="button-group">
+                    <button class="btn btn-secondary" id="prevBtn" ${currentStep === 0 ? 'disabled' : ''}>Précédent</button>
+                    <button class="btn btn-primary" id="nextBtn" ${!canProceed() ? 'disabled' : ''}>
+                        ${currentStep === questions.length - 1 ? 'Voir le résultat' : 'Suivant'}
+                    </button>
+                </div>
+            `;
+            
+            return html;
+        }
+
+        function renderResult() {
+            const severityText = {
+                'none': 'Pas de dénutrition selon les critères HAS',
+                'moderate': 'Dénutrition Modérée (Critères HAS)',
+                'severe': 'Dénutrition Sévère (Critères HAS)'
+            };
+            
+            const cardClass = result.severity === 'none' ? 'green' : (result.severity === 'moderate' ? 'orange' : 'red');
+            
+            let html = `
+                <div class="header">
+                    <h1>Résultat de l'Évaluation</h1>
+                    <div class="badge">Critères HAS 2019/2021</div>
+                </div>
+                
+                <div class="result-card ${cardClass}">
+                    <div class="result-title">${severityText[result.severity]}</div>
+                    <p style="margin-bottom: 16px;">
+                        ${getResultDescription()}
+                    </p>
+                    
+                    <div class="details-box">
+                        <p><strong>Âge :</strong> ${result.details.age} ans</p>
+                        <p><strong>IMC :</strong> ${result.details.imc} kg/m²</p>
+                        ${result.details.loss1Month > 0 ? `<p><strong>Perte 1 mois :</strong> ${result.details.loss1Month}%</p>` : ''}
+                        ${result.details.loss6Months > 0 ? `<p><strong>Perte 6 mois :</strong> ${result.details.loss6Months}%</p>` : ''}
+                        ${result.details.lossBeforeIllness > 0 ? `<p><strong>Perte depuis maladie :</strong> ${result.details.lossBeforeIllness}%</p>` : ''}
+                    </div>
+                    
+                    ${result.severity !== 'none' ? `
+                        <div class="criteria-grid">
+                            <div class="criteria-box">
+                                <div class="criteria-label">PHÉNOTYPIQUES</div>
+                                <ul>
+                                    ${result.phenotypicCriteria.map(c => `<li>${c}</li>`).join('')}
+                                </ul>
+                            </div>
+                            <div class="criteria-box">
+                                <div class="criteria-label">ÉTIOLOGIQUES</div>
+                                <ul>
+                                    ${result.etiologicCriteria.map(c => `<li>${c}</li>`).join('')}
+                                </ul>
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+                
+                <div class="info-box">
+                    <p style="margin-bottom: 8px;"><strong>Diagnostic HAS :</strong></p>
+                    <p style="margin-bottom: 8px;">Dénutrition = AU MOINS 1 critère phénotypique ET AU MOINS 1 critère étiologique</p>
+                    <p style="font-size: 12px; margin-top: 12px;"><strong>Références :</strong> HAS 2019 (adultes < 70 ans) et HAS 2021 (personnes âgées ≥ 70 ans)</p>
+                </div>
+                
+                <div class="button-group">
+                    <button class="btn btn-primary" id="copyBtn">📧 Copier pour email</button>
+                    <button class="btn btn-primary" id="resetBtn">Nouvelle Évaluation</button>
+                </div>
+            `;
+            
+            return html;
+        }
+
+        function getResultDescription() {
+            if (result.severity === 'none') {
+                if (!result.hasPhenotypic && !result.hasEtiologic) {
+                    return "Aucun critère phénotypique ou étiologique n'est rempli.";
+                } else if (result.hasPhenotypic && !result.hasEtiologic) {
+                    return "Critère(s) phénotypique(s) présent(s) mais absence de critère étiologique.";
+                } else {
+                    return "Critère(s) étiologique(s) présent(s) mais absence de critère phénotypique.";
+                }
+            } else if (result.severity === 'moderate') {
+                return "Le patient présente AU MOINS 1 critère phénotypique ET 1 critère étiologique, confirmant une dénutrition modérée.";
+            } else {
+                return "Le patient présente des critères de dénutrition sévère nécessitant une prise en charge nutritionnelle urgente et spécialisée.";
+            }
+        }
+
+        function canProceed() {
+            const question = questions[currentStep];
+            return question.optional || (answers[question.id] !== undefined && answers[question.id] !== '');
+        }
+
+        function attachEventListeners() {
+            // Option buttons
+            document.querySelectorAll('.option-button').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const question = questions[currentStep];
+                    answers[question.id] = btn.dataset.value;
+                    render();
+                });
+            });
+
+            // Number input
+            const numberInput = document.getElementById('numberInput');
+            if (numberInput) {
+                numberInput.addEventListener('input', (e) => {
+                    const question = questions[currentStep];
+                    answers[question.id] = e.target.value;
+                    render();
+                });
+            }
+
+            // Navigation buttons
+            const prevBtn = document.getElementById('prevBtn');
+            if (prevBtn) {
+                prevBtn.addEventListener('click', () => {
+                    if (currentStep > 0) {
+                        currentStep--;
+                        render();
+                    }
+                });
+            }
+
+            const nextBtn = document.getElementById('nextBtn');
+            if (nextBtn) {
+                nextBtn.addEventListener('click', () => {
+                    if (canProceed()) {
+                        if (currentStep < questions.length - 1) {
+                            currentStep++;
+                            render();
+                        } else {
+                            evaluateDenutrition();
+                            render();
+                        }
+                    }
+                });
+            }
+
+            // Result buttons
+            const resetBtn = document.getElementById('resetBtn');
+            if (resetBtn) {
+                resetBtn.addEventListener('click', () => {
+                    currentStep = 0;
+                    answers = {};
+                    result = null;
+                    render();
+                });
+            }
+
+            const copyBtn = document.getElementById('copyBtn');
+            if (copyBtn) {
+                copyBtn.addEventListener('click', copyToClipboard);
+            }
+        }
+
+        function evaluateDenutrition() {
+            const age = parseInt(answers.age);
+            const height = parseFloat(answers.height) / 100;
+            const currentWeight = parseFloat(answers.current_weight);
+            const imc = currentWeight / (height * height);
+
+            const weight1Month = parseFloat(answers.weight_1month);
+            const weight6Months = parseFloat(answers.weight_6months);
+            const weightBeforeIllness = parseFloat(answers.weight_before_illness);
+
+            let phenotypicCriteria = [];
+            let etiologicCriteria = [];
+            let hasPhenotypic = false;
+            let hasEtiologic = false;
+            let severity = 'none';
+
+            // Calcul pertes de poids
+            let maxLoss1Month = 0;
+            let maxLoss6Months = 0;
+            let maxLossBeforeIllness = 0;
+
+            if (weight1Month && weight1Month > currentWeight) {
+                maxLoss1Month = ((weight1Month - currentWeight) / weight1Month) * 100;
+            }
+            if (weight6Months && weight6Months > currentWeight) {
+                maxLoss6Months = ((weight6Months - currentWeight) / weight6Months) * 100;
+            }
+            if (weightBeforeIllness && weightBeforeIllness > currentWeight) {
+                maxLossBeforeIllness = ((weightBeforeIllness - currentWeight) / weightBeforeIllness) * 100;
+            }
+
+            // Critères phénotypiques
+            if (maxLoss1Month >= 5) {
+                phenotypicCriteria.push(`Perte de poids ≥ 5% en 1 mois (${maxLoss1Month.toFixed(1)}%)`);
+                hasPhenotypic = true;
+            }
+            if (maxLoss6Months >= 10) {
+                phenotypicCriteria.push(`Perte de poids ≥ 10% en 6 mois (${maxLoss6Months.toFixed(1)}%)`);
+                hasPhenotypic = true;
+            }
+            if (maxLossBeforeIllness >= 10) {
+                phenotypicCriteria.push(`Perte de poids ≥ 10% par rapport au poids habituel (${maxLossBeforeIllness.toFixed(1)}%)`);
+                hasPhenotypic = true;
+            }
+
+            if (maxLoss1Month >= 10) {
+                phenotypicCriteria.push(`SÉVÈRE: Perte ≥ 10% en 1 mois (${maxLoss1Month.toFixed(1)}%)`);
+                severity = 'severe';
+            }
+            if (maxLoss6Months >= 15) {
+                phenotypicCriteria.push(`SÉVÈRE: Perte ≥ 15% en 6 mois (${maxLoss6Months.toFixed(1)}%)`);
+                severity = 'severe';
+            }
+            if (maxLossBeforeIllness >= 15) {
+                phenotypicCriteria.push(`SÉVÈRE: Perte ≥ 15% par rapport au poids habituel (${maxLossBeforeIllness.toFixed(1)}%)`);
+                severity = 'severe';
+            }
+
+            const imcThreshold = age >= 70 ? 22 : 18.5;
+            const imcSevereThreshold = age >= 70 ? 20 : 17;
+
+            if (imc < imcThreshold) {
+                phenotypicCriteria.push(`IMC < ${imcThreshold} kg/m² (IMC: ${imc.toFixed(1)})`);
+                hasPhenotypic = true;
+            }
+            if (imc < imcSevereThreshold) {
+                phenotypicCriteria.push(`SÉVÈRE: IMC < ${imcSevereThreshold} kg/m² (IMC: ${imc.toFixed(1)})`);
+                severity = 'severe';
+            }
+
+            if (answers.sarcopenia === 'Oui') {
+                phenotypicCriteria.push('Sarcopénie confirmée');
+                hasPhenotypic = true;
+            }
+
+            // Critères étiologiques
+            if (answers.food_intake === 'Réduction ≥ 50% pendant > 1 semaine') {
+                etiologicCriteria.push('Réduction alimentaire ≥ 50% pendant > 1 semaine');
+                hasEtiologic = true;
+            } else if (answers.food_intake === 'Réduction pendant > 2 semaines (quelle que soit l\'intensité)') {
+                etiologicCriteria.push('Réduction alimentaire pendant > 2 semaines');
+                hasEtiologic = true;
+            }
+
+            if (answers.malabsorption === 'Oui') {
+                etiologicCriteria.push('Malabsorption/maldigestion');
+                hasEtiologic = true;
+            }
+
+            if (answers.pathology !== 'Aucune') {
+                etiologicCriteria.push(`Situation d'agression: ${answers.pathology.toLowerCase()}`);
+                hasEtiologic = true;
+            }
+
+            if (answers.albumin === '< 30 g/L') {
+                phenotypicCriteria.push('SÉVÈRE: Albuminémie < 30 g/L');
+                severity = 'severe';
+            }
+
+            let diagnosis = 'none';
+            if (hasPhenotypic && hasEtiologic) {
+                diagnosis = severity === 'severe' ? 'severe' : 'moderate';
+            }
+
+            result = {
+                severity: diagnosis,
+                phenotypicCriteria,
+                etiologicCriteria,
+                hasPhenotypic,
+                hasEtiologic,
+                details: {
+                    age,
+                    imc: imc.toFixed(1),
+                    loss1Month: maxLoss1Month.toFixed(1),
+                    loss6Months: maxLoss6Months.toFixed(1),
+                    lossBeforeIllness: maxLossBeforeIllness.toFixed(1)
+                }
+            };
+        }
+
+        function copyToClipboard() {
+            const severityText = {
+                'none': 'Pas de dénutrition',
+                'moderate': 'Dénutrition modérée',
+                'severe': 'Dénutrition sévère'
+            };
+
+            let text = `ÉVALUATION NUTRITIONNELLE - CRITÈRES HAS\n`;
+            text += `========================================\n\n`;
+            text += `DIAGNOSTIC : ${severityText[result.severity]}\n\n`;
+            text += `DONNÉES PATIENT\n`;
+            text += `---------------\n`;
+            text += `Âge : ${result.details.age} ans\n`;
+            text += `IMC : ${result.details.imc} kg/m²\n`;
+            
+            if (result.details.loss1Month > 0) {
+                text += `Perte de poids sur 1 mois : ${result.details.loss1Month}%\n`;
+            }
+            if (result.details.loss6Months > 0) {
+                text += `Perte de poids sur 6 mois : ${result.details.loss6Months}%\n`;
+            }
+            if (result.details.lossBeforeIllness > 0) {
+                text += `Perte de poids depuis la maladie : ${result.details.lossBeforeIllness}%\n`;
+            }
+            
+            if (result.severity !== 'none') {
+                text += `\nCRITÈRES PHÉNOTYPIQUES (HAS)\n`;
+                text += `-----------------------------\n`;
+                result.phenotypicCriteria.forEach(c => {
+                    text += `• ${c}\n`;
+                });
+                
+                text += `\nCRITÈRES ÉTIOLOGIQUES (HAS)\n`;
+                text += `---------------------------\n`;
+                result.etiologicCriteria.forEach(c => {
+                    text += `• ${c}\n`;
+                });
+            }
+            
+            text += `\n\nREMARQUE\n`;
+            text += `--------\n`;
+            text += `Cette évaluation est basée sur les critères HAS 2019 (adultes < 70 ans) et HAS 2021 (personnes âgées ≥ 70 ans).\n`;
+            text += `Le diagnostic de dénutrition nécessite AU MOINS 1 critère phénotypique ET AU MOINS 1 critère étiologique.\n`;
+
+            navigator.clipboard.writeText(text).then(() => {
+                alert('✅ Résultat copié dans le presse-papiers !');
+            }).catch(() => {
+                alert('❌ Erreur lors de la copie');
+            });
+        }
+
+        // Initial render
+        render();
+    </script>
+</body>
+</html>
